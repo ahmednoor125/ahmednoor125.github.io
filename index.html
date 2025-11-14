@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Story2Video - Reddit to TikTok/YouTube Shorts</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #ff4500;
+            --secondary: #1a1a1b;
+            --dark: #0f0f10;
+            --light: #f5f5f7;
+            --gray: #272729;
+            --success: #4caf50;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, var(--dark), #1a1a1b);
+            color: var(--light);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 30px;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .logo i {
+            font-size: 2.5rem;
+            color: var(--primary);
+        }
+        
+        .logo h1 {
+            font-size: 2rem;
+            background: linear-gradient(to right, #ff4500, #ff8c00);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 25px;
+        }
+        
+        .nav-links a {
+            color: var(--light);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+            position: relative;
+        }
+        
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+        
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--primary);
+            transition: width 0.3s;
+        }
+        
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+        
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        @media (max-width: 900px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .card {
+            background: rgba(30, 30, 34, 0.7);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .card h2 {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            color: var(--primary);
+            font-size: 1.5rem;
+        }
+        
+        .card h2 i {
+            font-size: 1.8rem;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            background: rgba(20, 20, 24, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: var(--light);
+            font-size: 1rem;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        
+        textarea.form-control {
+            min-height: 120px;
+            resize: vertical;
+        }
+        
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #e03e00;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 69, 0, 0.3);
+        }
+        
+        .btn-secondary {
+            background: var(--gray);
+            color: var(--light);
+        }
+        
+        .btn-secondary:hover {
+            background: #3a3a3d;
+        }
+        
+        .btn-block {
+            display: block;
+            width: 100%;
+            text-align: center;
+        }
+        
+        .video-preview {
+            background: #000;
+            border-radius: 10px;
+            overflow: hidden;
+            height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            margin-bottom: 20px;
+        }
+        
+        .video-placeholder {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.5);
+        }
+        
+        .video-placeholder i {
+            font-size: 4rem;
+            margin-bottom: 15px;
+        }
+        
+        .video-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .bg-options {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .bg-option {
+            height: 100px;
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+            position: relative;
+            border: 2px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        .bg-option:hover {
+            transform: scale(1.03);
+        }
+        
+        .bg-option.active {
+            border-color: var(--primary);
+        }
+        
+        .bg-option img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .bg-option .title {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 5px;
+            font-size: 0.8rem;
+            text-align: center;
+        }
+        
+        .automation-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 15px;
+            background: rgba(76, 175, 80, 0.1);
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        
+        .status-indicator {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background: var(--success);
+        }
+        
+        .status-indicator.off {
+            background: #f44336;
+        }
+        
+        .process-steps {
+            margin-top: 25px;
+        }
+        
+        .step {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            background: rgba(20, 20, 24, 0.7);
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+        
+        .step-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        
+        .step.active .step-icon {
+            background: #4caf50;
+        }
+        
+        .step .step-info h3 {
+            margin-bottom: 5px;
+        }
+        
+        .step .step-info p {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 30px 0;
+            margin-top: 40px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        .tts-options {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .voice-option {
+            flex: 1;
+            padding: 10px;
+            background: rgba(20, 20, 24, 0.7);
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .voice-option:hover {
+            background: rgba(255, 69, 0, 0.1);
+        }
+        
+        .voice-option.active {
+            background: rgba(255, 69, 0, 0.2);
+            border: 1px solid var(--primary);
+        }
+        
+        .voice-option h4 {
+            margin-bottom: 5px;
+        }
+        
+        .voice-option p {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .progress-container {
+            margin-top: 20px;
+        }
+        
+        .progress-bar {
+            height: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        
+        .progress {
+            height: 100%;
+            background: var(--primary);
+            width: 0%;
+            transition: width 0.5s;
+        }
+        
+        .progress-text {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <i class="fas fa-play-circle"></i>
+                <h1>Story2Video</h1>
+            </div>
+            <div class="nav-links">
+                <a href="#"><i class="fas fa-home"></i> Dashboard</a>
+                <a href="#"><i class="fas fa-history"></i> History</a>
+                <a href="#"><i class="fas fa-cog"></i> Settings</a>
+            </div>
+        </header>
+        
+        <div class="dashboard">
+            <div class="card">
+                <h2><i class="fab fa-reddit"></i> Reddit Story Input</h2>
+                <div class="form-group">
+                    <label for="reddit-url">Reddit Post URL</label>
+                    <input type="text" id="reddit-url" class="form-control" placeholder="Paste Reddit post URL here...">
+                </div>
+                <div class="form-group">
+                    <label for="story-text">Or Enter Story Text</label>
+                    <textarea id="story-text" class="form-control" placeholder="Paste your story text here...">So I was at the grocery store today and I witnessed something that made me question humanity. A woman was shopping with her 3-year-old son, and he was being incredibly loud and disruptive. The mother was completely ignoring his behavior. Eventually, he started throwing items off the shelves. Other customers were getting annoyed. I finally approached the mother and politely mentioned her son's behavior. She looked at me and said, "He's just being a kid, get over it." I couldn't believe it! Then she proceeded to let her son continue destroying the aisle. I had to call the manager, who finally intervened. What would you do in this situation?</textarea>
+                </div>
+                <button class="btn btn-primary" id="fetch-story">
+                    <i class="fas fa-sync-alt"></i> Fetch Story
+                </button>
+                
+                <div class="process-steps">
+                    <div class="step active">
+                        <div class="step-icon">
+                            <i class="fas fa-download"></i>
+                        </div>
+                        <div class="step-info">
+                            <h3>Fetch Reddit Story</h3>
+                            <p>Retrieving story from Reddit</p>
+                        </div>
+                    </div>
+                    
+                    <div class="step">
+                        <div class="step-icon">
+                            <i class="fas fa-magic"></i>
+                        </div>
+                        <div class="step-info">
+                            <h3>Process Story</h3>
+                            <p>Formatting and cleaning text</p>
+                        </div>
+                    </div>
+                    
+                    <div class="step">
+                        <div class="step-icon">
+                            <i class="fas fa-volume-up"></i>
+                        </div>
+                        <div class="step-info">
+                            <h3>Text-to-Speech</h3>
+                            <p>Converting text to audio</p>
+                        </div>
+                    </div>
+                    
+                    <div class="step">
+                        <div class="step-icon">
+                            <i class="fas fa-film"></i>
+                        </div>
+                        <div class="step-info">
+                            <h3>Video Creation</h3>
+                            <p>Combining text, audio and background</p>
+                        </div>
+                    </div>
+                    
+                    <div class="step">
+                        <div class="step-icon">
+                            <i class="fas fa-upload"></i>
+                        </div>
+                        <div class="step-info">
+                            <h3>Publish</h3>
+                            <p>Uploading to TikTok/YouTube</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2><i class="fas fa-video"></i> Video Preview & Settings</h2>
+                
+                <div class="video-preview">
+                    <div class="video-placeholder">
+                        <i class="fas fa-film"></i>
+                        <p>Video Preview Will Appear Here</p>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Background Theme</label>
+                    <div class="bg-options">
+                        <div class="bg-option active">
+                            <img src="https://images.unsplash.com/photo-1550745165-9bc0b252726f?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Gaming Background">
+                            <div class="title">Gaming</div>
+                        </div>
+                        <div class="bg-option">
+                            <img src="https://images.unsplash.com/photo-1542751110-97427bbecf20?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Nature Background">
+                            <div class="title">Nature</div>
+                        </div>
+                        <div class="bg-option">
+                            <img src="https://images.unsplash.com/photo-1519681393784-d120267933ba?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Space Background">
+                            <div class="title">Space</div>
+                        </div>
+                        <div class="bg-option">
+                            <img src="https://images.unsplash.com/photo-1541701494587-cb58502866ab?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Abstract Background">
+                            <div class="title">Abstract</div>
+                        </div>
+                        <div class="bg-option">
+                            <img src="https://images.unsplash.com/photo-1511512578047-dfb367046420?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="City Background">
+                            <div class="title">City</div>
+                        </div>
+                        <div class="bg-option">
+                            <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Mountains Background">
+                            <div class="title">Mountains</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Text-to-Speech Voice</label>
+                    <div class="tts-options">
+                        <div class="voice-option active">
+                            <h4>Emma</h4>
+                            <p>Friendly Female Voice</p>
+                        </div>
+                        <div class="voice-option">
+                            <h4>James</h4>
+                            <p>Narrator Male Voice</p>
+                        </div>
+                        <div class="voice-option">
+                            <h4>Luna</h4>
+                            <p>YouTuber Female Voice</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="video-controls">
+                    <button class="btn btn-secondary">
+                        <i class="fas fa-play"></i> Play Preview
+                    </button>
+                    <button class="btn btn-primary">
+                        <i class="fas fa-bolt"></i> Generate Video
+                    </button>
+                </div>
+                
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress" id="progress-bar"></div>
+                    </div>
+                    <div class="progress-text" id="progress-text">Ready to generate video</div>
+                </div>
+                
+                <div class="automation-status">
+                    <div class="status-indicator"></div>
+                    <div>
+                        <h3>Automation Status: Active</h3>
+                        <p>Automatically posting to TikTok and YouTube Shorts</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2><i class="fas fa-history"></i> Recent Creations</h2>
+            <table class="form-control" style="width:100%; border-collapse: collapse; margin-top: 15px;">
+                <thead>
+                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+                        <th style="padding: 12px; text-align: left;">Story Title</th>
+                        <th style="padding: 12px; text-align: left;">Status</th>
+                        <th style="padding: 12px; text-align: left;">Date</th>
+                        <th style="padding: 12px; text-align: left;">Platform</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="padding: 12px;">Gaming Fail Compilation</td>
+                        <td style="padding: 12px;"><span style="color: #4caf50;">Published</span></td>
+                        <td style="padding: 12px;">Nov 13, 2025</td>
+                        <td style="padding: 12px;">TikTok, YouTube</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 12px;">Reddit Stories That Made Me Laugh</td>
+                        <td style="padding: 12px;"><span style="color: #4caf50;">Published</span></td>
+                        <td style="padding: 12px;">Nov 12, 2025</td>
+                        <td style="padding: 12px;">TikTok</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 12px;">True Crime Stories from Reddit</td>
+                        <td style="padding: 12px;"><span style="color: #ff9800;">Processing</span></td>
+                        <td style="padding: 12px;">Nov 11, 2025</td>
+                        <td style="padding: 12px;">YouTube Shorts</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 12px;">Epic Gaming Moments</td>
+                        <td style="padding: 12px;"><span style="color: #f44336;">Failed</span></td>
+                        <td style="padding: 12px;">Nov 10, 2025</td>
+                        <td style="padding: 12px;">TikTok</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <footer>
+            <p>Story2Video &copy; 2025 | Automate Your Content Creation | For Personal Use Only</p>
+            <p style="margin-top: 10px;">This is a frontend demonstration. Actual automation would require backend integration.</p>
+        </footer>
+    </div>
+
+    <script>
+        // Background selection
+        const bgOptions = document.querySelectorAll('.bg-option');
+        bgOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                bgOptions.forEach(opt => opt.classList.remove('active'));
+                option.classList.add('active');
+            });
+        });
+        
+        // Voice selection
+        const voiceOptions = document.querySelectorAll('.voice-option');
+        voiceOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                voiceOptions.forEach(opt => opt.classList.remove('active'));
+                option.classList.add('active');
+            });
+        });
+        
+        // Progress simulation
+        const progressBar = document.getElementById('progress-bar');
+        const progressText = document.getElementById('progress-text');
+        
+        document.querySelector('.btn-primary').addEventListener('click', function() {
+            if(this.textContent.includes('Generate')) {
+                let progress = 0;
+                const interval = setInterval(() => {
+                    progress += Math.floor(Math.random() * 10) + 5;
+                    if(progress >= 100) {
+                        progress = 100;
+                        clearInterval(interval);
+                        progressText.textContent = 'Video generation complete! Publishing to TikTok and YouTube Shorts...';
+                        setTimeout(() => {
+                            progressText.innerHTML = 'Video published successfully! <a href="#" style="color:var(--primary);">View on TikTok</a> | <a href="#" style="color:var(--primary);">View on YouTube</a>';
+                        }, 1000);
+                    }
+                    progressBar.style.width = `${progress}%`;
+                    progressText.textContent = `Generating video... ${progress}%`;
+                }, 300);
+            }
+        });
+        
+        // Fetch story button
+        document.getElementById('fetch-story').addEventListener('click', function() {
+            const url = document.getElementById('reddit-url').value;
+            if(url) {
+                alert(`Fetching story from: ${url}\n\nIn a real implementation, this would fetch the actual Reddit post content.`);
+            } else {
+                alert('Please enter a Reddit post URL or paste story text');
+            }
+        });
+    </script>
+</body>
+</html>
+
+
